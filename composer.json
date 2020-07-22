@@ -1,0 +1,10 @@
+{
+    "name": "snac/ead-parser",
+    "description": "EAD Parser for SNAC",
+    "license": "BSD-3 clause",
+    "authors": [
+        {
+            "name": "SNAC Cooperative"
+        }
+    ]
+}
