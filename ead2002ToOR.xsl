@@ -2,12 +2,7 @@
 <xsl:stylesheet xmlns:ead="urn:isbn:1-931666-22-9" xmlns:functx="http://www.functx.com" xmlns:snac="snac"
 	xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xs="http://www.w3.org/2001/XMLSchema"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xpath-default-namespace="urn:isbn:1-931666-22-9"
-    version="3.0">
-<!--
- @author Daniel Pitti 
- @license https://opensource.org/licenses/BSD-3-Clause BSD 3-Clause
- @copyright 2020 the Rector and Visitors of the University of Virginia
--->
+	version="3.0">
 <!-- To convert from EAD2002 to EAD3, or vice-versa
 	1. xmlns:ead="http://ead3.archivists.org/schema/" to/from xmlns:ead="urn:isbn:1-931666-22-9"
 	2. xpath-default-namespace="http://ead3.archivists.org/schema/" to/from xpath-default-namespace="urn:isbn:1-931666-22-9
@@ -932,7 +927,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 				<xsl:for-each select="$process/*">
 					<xsl:variable name="recordId" select="./control/recordId"
 						xpath-default-namespace="urn:isbn:1-931666-22-9"/>
-					<xsl:result-document href="{$outputFolderPath}/{$recordId}.xml" indent="yes">
+					<xsl:result-document href="{$outputFolderPath}{$sourceID}/{$recordId}.xml" indent="yes">
 						<xsl:processing-instruction name="oxygen">
 							<xsl:text>RNGSchema="http://socialarchive.iath.virginia.edu/shared/cpf.rng" type="xml"</xsl:text>
 						</xsl:processing-instruction>
@@ -972,10 +967,9 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 
 
 	<xsl:template name="RD-OR">
-		<xsl:result-document method="text" href="{$outputFolderPath}/RD-Table.tsv">
+		<xsl:result-document method="text" href="{$outputFolderPath}{$sourceID}/{$sourceID}RD-Table.tsv">
 			<!-- The following creates first (label) row <xsl:result-document method="text" href="{$cpfOutLocation}{$sourceID}/{$sourceID}RD-Table.tsv">of table -->
 			<xsl:text>Source-RD-ID&#009;</xsl:text>
-			<xsl:text>SNAC-RD-ID&#009;</xsl:text>
 			<xsl:text>RD-Role&#009;</xsl:text>
 			<xsl:text>Display-Entry&#009;</xsl:text>
 			<xsl:text>Title&#009;</xsl:text>
@@ -997,8 +991,6 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 				</xsl:for-each-->
 				<!-- Source-RD-ID -->
 				<xsl:value-of select="normalize-space(snac:eadPath)"/>
-				<xsl:text>&#009;</xsl:text>
-				<!-- SNAC-RD-ID -->
 				<xsl:text>&#009;</xsl:text>
 				<!-- RD-Role -->
 				<xsl:text>ArchivalResource</xsl:text>
@@ -1103,10 +1095,9 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 	</xsl:template>
 
 	<xsl:template name="CPF-OR">
-		<xsl:result-document method="text" href="{$outputFolderPath}/CPF-Table.tsv">
+		<xsl:result-document method="text" href="{$outputFolderPath}{$sourceID}/{$sourceID}CPF-Table.tsv">
 			<!-- The following creates first (label) row of table -->
 			<xsl:text>Source-CPF-ID&#009;</xsl:text>
-			<xsl:text>SNAC-CPF-ID&#009;</xsl:text>
 			<xsl:text>Related-ID&#009;</xsl:text>
 			<xsl:text>entityType&#009;</xsl:text>
 			<xsl:text>nameEntry&#009;</xsl:text>
@@ -1118,15 +1109,12 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 			<xsl:text>RD-role&#009;</xsl:text>
 			<xsl:text>RD-arcrole&#009;</xsl:text>
 			<xsl:text>RD-Source-ID&#009;</xsl:text>
-			<xsl:text>RD-SNAC-ID&#009;</xsl:text>
 			<xsl:text>biogHist</xsl:text>
 			<xsl:text>&#xA;</xsl:text>
 
 			<xsl:for-each select="$process/snac:oneFindingAid/snac:entity">
 				<!-- Source-CPF-ID -->
 				<xsl:value-of select="@recordId"/>
-				<xsl:text>&#009;</xsl:text>
-				<!-- SNAC-CPF-ID -->
 				<xsl:text>&#009;</xsl:text>
 				<!-- LoC-ID -->
 				<xsl:if test="snac:normalFinal/*/@authfilenumber">
@@ -1246,8 +1234,6 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 				<!-- RD-Source-ID -->
 				<xsl:value-of select="ancestor::snac:oneFindingAid/snac:otherData/snac:eadPath"/>
 				<xsl:text>&#009;</xsl:text>
-				<!-- RD-SNAC-ID -->
-				<xsl:text>&#009;</xsl:text>
 				<!-- biogHist -->
 				<xsl:if test="@source = 'origination'">
 					<xsl:for-each select="ancestor::snac:oneFindingAid/snac:otherData/ead:bioghist">
@@ -1271,14 +1257,12 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 	</xsl:template>
 
 	<xsl:template name="Join-OR">
-		<xsl:result-document method="text" href="{$outputFolderPath}/CPF-Join-Table.tsv">
+		<xsl:result-document method="text" href="{$outputFolderPath}{$sourceID}/{$sourceID}CPF-Join-Table.tsv">
 			<!-- The following creates first (label) row of table -->
 			<xsl:text>Source-CPFAnchor-ID&#009;</xsl:text>
-			<xsl:text>SNAC-CPFAnchor-ID&#009;</xsl:text>
 			<xsl:text>Role&#009;</xsl:text>
 			<xsl:text>ArcRole&#009;</xsl:text>
-			<xsl:text>Source-CPFTarget-ID&#009;</xsl:text>
-			<xsl:text>SNAC-CPFTarget-ID</xsl:text>
+			<xsl:text>Source-CPFTarget-ID</xsl:text>
 			<xsl:text>&#xA;</xsl:text>
 			<xsl:for-each select="$process/snac:oneFindingAid">
 				<xsl:variable name="allEntities">
@@ -1302,8 +1286,6 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 							<xsl:for-each select="$allEntities/snac:entity[not(@recordId = $recordId)]">
 								<!-- Source-CPFAnchor-ID -->
 								<xsl:value-of select="$recordId"/>
-								<xsl:text>&#009;</xsl:text>
-								<!-- SNAC-CPFAnchor-ID -->
 								<xsl:text>&#009;</xsl:text>
 								<!-- Role -->
 								<xsl:choose>
@@ -1330,8 +1312,6 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 								<xsl:text>&#009;</xsl:text>
 								<!-- Source-CPFTarget-ID -->
 								<xsl:value-of select="@recordId"/>
-								<xsl:text>&#009;</xsl:text>
-								<!-- SNAC-CPFTarget-ID -->
 								<xsl:text>&#xA;</xsl:text>
 							</xsl:for-each>
 						</xsl:when>
@@ -1339,8 +1319,6 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 							<xsl:for-each select="$allEntities/snac:entity[@source = 'origination']">
 								<!-- Source-CPFAnchor-ID -->
 								<xsl:value-of select="$recordId"/>
-								<xsl:text>&#009;</xsl:text>
-								<!-- SNAC-CPFAnchor-ID -->
 								<xsl:text>&#009;</xsl:text>
 								<!-- Role -->
 								<xsl:choose>
@@ -1367,8 +1345,6 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 								<xsl:text>&#009;</xsl:text>
 								<!-- Source-CPFTarget-ID -->
 								<xsl:value-of select="@recordId"/>
-								<xsl:text>&#009;</xsl:text>
-								<!-- SNAC-CPFTarget-ID -->
 								<xsl:text>&#xA;</xsl:text>
 							</xsl:for-each>
 						</xsl:otherwise>
