@@ -3,10 +3,16 @@
 	xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xs="http://www.w3.org/2001/XMLSchema"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xpath-default-namespace="urn:isbn:1-931666-22-9"
 	version="3.0">
+	<!--
+ @author Daniel Pitti 
+ @license https://opensource.org/licenses/BSD-3-Clause BSD 3-Clause
+ @copyright 2020 the Rector and Visitors of the University of Virginia
+-->
 <!-- To convert from EAD2002 to EAD3, or vice-versa
 	1. xmlns:ead="http://ead3.archivists.org/schema/" to/from xmlns:ead="urn:isbn:1-931666-22-9"
 	2. xpath-default-namespace="http://ead3.archivists.org/schema/" to/from xpath-default-namespace="urn:isbn:1-931666-22-9
 	3. Search for namespace string and replace with appropriate string.
+	4. change variable tempSourceId to empty string in both versions
 	
 	No changes to included stylesheets
 	-->
@@ -20,13 +26,13 @@
 		
 		The following command works locally:
 		
-		java -cp /usr/local/Cellar/saxon/9.9.1.7/libexec/saxon9he.jar net.sf.saxon.Transform -s:/Users/dvp4c/Work/SNACIII/OpenRefine/EAD/Driver/driver.xml -xsl:/Users/dvp4c/Work/SNACIII/OpenRefine/EAD/XSLT/EADtoOR/eadToORxsl.xsl -o:/Users/dvp4c/Work/SNACIII/OpenRefine/EAD/Extract/output.xml sourceFolderPath=../../SourceFiles/nypl2019 outputFolderPath=../extract/ sourceID=nypl
+		java -cp /usr/local/Cellar/saxon/9.9.1.7/libexec/saxon9he.jar net.sf.saxon.Transform -s:/Users/dvp4c/Work/SNACIII/OpenRefine/EAD/Driver/driver.xml -xsl:/Users/dvp4c/Work/SNACIII/OpenRefine/EAD/XSLT/EADtoOR/eadToORxsl.xsl -o:/Users/dvp4c/Work/SNACIII/OpenRefine/EAD/Extract/output.xml sourceFolderPath=../../SourceFiles/nypl2019 outputFolderPath=../extract/ 
 		
-		passing three parameters:
+		passing two parameters:
 		
 		param sourceFolderPath
 		param outputFolderPath
-		param sourceID
+
 		
 		optional param: start [number] stop[number] can also be added for test purposes when you want to, let us say, process
 		only 10 out of a 100 files.
@@ -54,28 +60,22 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 	<xsl:import href="eadToORVariables.xsl"/>
 
 	<xsl:param name="sourceFolderPath">
-		<xsl:text>../../SourceFiles/nypl2019</xsl:text>
+		<xsl:text>../../SourceFiles/</xsl:text>
+		<xsl:value-of select="$tempSourceID"/>
 		<!-- URL for the remote folder in which there are ead encoded xml files; alternatively, if the files are "pre-fetched"
 		to a SNAC server, then the URL to the folder on the SNAC server will be the sourceFolder-->
 	</xsl:param>
 
 	<xsl:param name="outputFolderPath">
 		<xsl:text>../extract/</xsl:text>
-		<!-- URL for the three tsv files created. The folder name is appended and is provided by the sourceID below.  -->
+		<!-- URL for the three tsv files created.  -->
 	</xsl:param>
 
-	<xsl:param name="sourceID">
-		<xsl:text>nypl</xsl:text>
-		<!-- Used for the following purposes:
-		     1. for prefix to each CPF temporary ID for each CPF entity extracted 
-		     2. for prefix of file names for the three files generated. For example:
-		        nyplCPF-Join-Table
-		        nyplCPF-Table
-		        nyplRD-Table 
-		     3. for folder name to be appended to outputFolderPath -->
-	</xsl:param>
-
-
+	<xsl:variable name="tempSourceID">
+		<xsl:text></xsl:text>
+		<!-- LoC nypl2019 -->
+	<!-- reduce to empty string for production -->	
+	</xsl:variable>
 
 	<!-- ******************************************** -->
 	<!-- The following two parameters are by default set to process all uri-collection files. But command
@@ -806,8 +806,6 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 							<snac:entity>
 								<xsl:copy-of select="@*"/>
 								<xsl:attribute name="recordId">
-									<xsl:value-of select="$sourceID"/>
-									<xsl:text>.</xsl:text>
 									<xsl:value-of select="snac:getBaseIdName(snac:getFileName($eadPath))"/>
 									<xsl:choose>
 										<xsl:when test=".[@source = 'origination' and not(@discard = 'yes')]">
@@ -927,7 +925,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 				<xsl:for-each select="$process/*">
 					<xsl:variable name="recordId" select="./control/recordId"
 						xpath-default-namespace="urn:isbn:1-931666-22-9"/>
-					<xsl:result-document href="{$outputFolderPath}{$sourceID}/{$recordId}.xml" indent="yes">
+					<xsl:result-document href="{$outputFolderPath}{$tempSourceID}/{$recordId}.xml" indent="yes">
 						<xsl:processing-instruction name="oxygen">
 							<xsl:text>RNGSchema="http://socialarchive.iath.virginia.edu/shared/cpf.rng" type="xml"</xsl:text>
 						</xsl:processing-instruction>
@@ -967,8 +965,8 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 
 
 	<xsl:template name="RD-OR">
-		<xsl:result-document method="text" href="{$outputFolderPath}{$sourceID}/{$sourceID}RD-Table.tsv">
-			<!-- The following creates first (label) row <xsl:result-document method="text" href="{$cpfOutLocation}{$sourceID}/{$sourceID}RD-Table.tsv">of table -->
+		<xsl:result-document method="text" href="{$outputFolderPath}{$tempSourceID}/{$tempSourceID}RD-Table.tsv">
+			<!-- The following creates first (label) row of table -->
 			<xsl:text>Source-RD-ID&#009;</xsl:text>
 			<xsl:text>RD-Role&#009;</xsl:text>
 			<xsl:text>Display-Entry&#009;</xsl:text>
@@ -1095,7 +1093,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 	</xsl:template>
 
 	<xsl:template name="CPF-OR">
-		<xsl:result-document method="text" href="{$outputFolderPath}{$sourceID}/{$sourceID}CPF-Table.tsv">
+		<xsl:result-document method="text" href="{$outputFolderPath}{$tempSourceID}/{$tempSourceID}CPF-Table.tsv">
 			<!-- The following creates first (label) row of table -->
 			<xsl:text>Source-CPF-ID&#009;</xsl:text>
 			<xsl:text>Related-ID&#009;</xsl:text>
@@ -1257,7 +1255,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 	</xsl:template>
 
 	<xsl:template name="Join-OR">
-		<xsl:result-document method="text" href="{$outputFolderPath}{$sourceID}/{$sourceID}CPF-Join-Table.tsv">
+		<xsl:result-document method="text" href="{$outputFolderPath}{$tempSourceID}/{$tempSourceID}CPF-Join-Table.tsv">
 			<!-- The following creates first (label) row of table -->
 			<xsl:text>Source-CPFAnchor-ID&#009;</xsl:text>
 			<xsl:text>Role&#009;</xsl:text>
@@ -1426,28 +1424,11 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 				<xsl:value-of select="snac:getFileName($eadPath)"/>
 			</snac:eadPath>
 			<snac:countryCode>
-				<xsl:choose>
-					<xsl:when test="$sourceID = 'bnf' or $sourceID = 'anfra'">
-						<xsl:text>FR</xsl:text>
-					</xsl:when>
-					<xsl:when test="$sourceID = 'ahub'">
-						<xsl:text>GB</xsl:text>
-					</xsl:when>
-					<xsl:otherwise>
-						<xsl:text>US</xsl:text>
-					</xsl:otherwise>
-				</xsl:choose>
+				<xsl:text>US</xsl:text>
 			</snac:countryCode>
 			
 			<snac:languageOfDescription>
-				<xsl:choose>
-					<xsl:when test="$sourceID = 'bnf' or $sourceID = 'anfra'">
-						<xsl:text>fre</xsl:text>
-					</xsl:when>
-					<xsl:otherwise>
-						<xsl:text>eng</xsl:text>
-					</xsl:otherwise>
-				</xsl:choose>
+				<xsl:text>eng</xsl:text>
 			</snac:languageOfDescription>
 			
 			<xsl:copy-of select="ead/eadheader/eadid | ead/control/recordid"/>
