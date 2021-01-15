@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:ead="http://ead3.archivists.org/schema/" xmlns:functx="http://www.functx.com" xmlns:snac="snac"
 	xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xs="http://www.w3.org/2001/XMLSchema"
-	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xpath-default-namespace="http://ead3.archivists.org/schema/"
-	version="3.0">
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xpath-default-namespace="http://ead3.archivists.org/schema/" version="3.0">
 	<!--
  @author Daniel Pitti 
  @license https://opensource.org/licenses/BSD-3-Clause BSD 3-Clause
  @copyright 2020 the Rector and Visitors of the University of Virginia
 -->
-<!-- To convert from EAD2002 to EAD3, or vice-versa
+	<!-- To convert from EAD2002 to EAD3, or vice-versa
 	1. xmlns:ead="http://ead3.archivists.org/schema/" to/from xmlns:ead="urn:isbn:1-931666-22-9"
 	2. xpath-default-namespace="http://ead3.archivists.org/schema/" to/from xpath-default-namespace="urn:isbn:1-931666-22-9
 	3. Search for namespace string and replace with appropriate string.
@@ -74,7 +73,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 	<xsl:variable name="tempSourceID">
 		<xsl:text></xsl:text>
 		<!-- LoC nypl2019 -->
-	<!-- reduce to empty string for production -->	
+		<!-- reduce to empty string for production -->
 	</xsl:variable>
 
 	<!-- ******************************************** -->
@@ -113,6 +112,33 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 
 	<!-- for testing purposes method is xml; this is overridden in result-document for tsv tables -->
 	<xsl:output indent="yes" method="xml"/>
+	<!-- ************************************************************************************************** -->
+	<!-- OpenRefine Column Labels -->
+	<!-- ************************************************************************************************** -->
+	<xsl:variable name="Abstract">Abstract</xsl:variable>
+	<xsl:variable name="BiogHist">BiogHist</xsl:variable>
+	<xsl:variable name="CPF-Relation-Type">CPF-Relation-Type</xsl:variable>
+	<xsl:variable name="CPF-Source-ID">CPF-Source-ID</xsl:variable>
+	<xsl:variable name="CPF-Source-ID-Anchor">CPF-Source-ID-Anchor</xsl:variable>
+	<xsl:variable name="CPF-Source-ID-Target">CPF-Source-ID-Target</xsl:variable>
+	<xsl:variable name="CPF-Type">CPF-Type</xsl:variable>
+	<xsl:variable name="Date">Date</xsl:variable>
+	<xsl:variable name="Display-Entry">Display-Entry</xsl:variable>
+	<xsl:variable name="Extent">Extent</xsl:variable>
+	<xsl:variable name="Function">Function</xsl:variable>
+	<xsl:variable name="Language">Language</xsl:variable>
+	<xsl:variable name="NameEntry">NameEntry</xsl:variable>
+	<xsl:variable name="Occupation">Occupation</xsl:variable>
+	<xsl:variable name="Place">Place</xsl:variable>
+	<xsl:variable name="RD-Relation-Type">RD-Relation-Type</xsl:variable>
+	<xsl:variable name="RD-Source-ID">RD-Source-ID</xsl:variable>
+	<xsl:variable name="RD-Type">RD-Type</xsl:variable>
+	<xsl:variable name="RD-URL">RD-URL</xsl:variable>
+	<xsl:variable name="Repository">Repository</xsl:variable>
+	<xsl:variable name="SameAs-ID">SameAs-ID</xsl:variable>
+	<xsl:variable name="Subject">Subject</xsl:variable>
+	<xsl:variable name="Title">Title</xsl:variable>
+
 	<!-- ************************************************************************************************** -->
 	<!-- ************************************************************************************************** -->
 	<!-- ************************************************************************************************** -->
@@ -795,12 +821,12 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 					</xsl:variable>
 
 					<xsl:for-each select="$normalizeStepFour">
-						<snac:originationCount>
+						<xsl:variable name="originationCount">
 							<xsl:value-of select="count(snac:entity[@source = 'origination'])"/>
-						</snac:originationCount>
-						<snac:biogHistCount>
-							<xsl:value-of select="count($selectBioghist/snac:bioghist)"/>
-						</snac:biogHistCount>
+						</xsl:variable>
+						<xsl:variable name="controlaccessCount">
+							<xsl:value-of select="count(snac:entity[@source = 'controlaccess'])"/>
+						</xsl:variable>
 
 						<xsl:for-each select="snac:entity[not(@discard = 'yes')]">
 							<snac:entity>
@@ -817,6 +843,12 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 											<xsl:number count="snac:entity[not(@source = 'origination') and not(@discard = 'yes')]" format="001"/>
 										</xsl:otherwise>
 									</xsl:choose>
+								</xsl:attribute>
+								<xsl:attribute name="originationCount">
+									<xsl:value-of select="$originationCount"/>
+								</xsl:attribute>
+								<xsl:attribute name="controlaccessCount">
+									<xsl:value-of select="$controlaccessCount"/>
 								</xsl:attribute>
 								<snac:normalFinal>
 									<xsl:choose>
@@ -923,8 +955,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 		<xsl:choose>
 			<xsl:when test="$processingType = 'CPFOut'">
 				<xsl:for-each select="$process/*">
-					<xsl:variable name="recordId" select="./control/recordId"
-						xpath-default-namespace="http://ead3.archivists.org/schema/"/>
+					<xsl:variable name="recordId" select="./control/recordId" xpath-default-namespace="http://ead3.archivists.org/schema/"/>
 					<xsl:result-document href="{$outputFolderPath}{$tempSourceID}/{$recordId}.xml" indent="yes">
 						<xsl:processing-instruction name="oxygen">
 							<xsl:text>RNGSchema="http://socialarchive.iath.virginia.edu/shared/cpf.rng" type="xml"</xsl:text>
@@ -967,16 +998,25 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 	<xsl:template name="RD-OR">
 		<xsl:result-document method="text" href="{$outputFolderPath}{$tempSourceID}/{$tempSourceID}RD-Table.tsv">
 			<!-- The following creates first (label) row of table -->
-			<xsl:text>Source-RD-ID&#009;</xsl:text>
-			<xsl:text>RD-Role&#009;</xsl:text>
-			<xsl:text>Display-Entry&#009;</xsl:text>
-			<xsl:text>Title&#009;</xsl:text>
-			<xsl:text>Date&#009;</xsl:text>
-			<xsl:text>Lang&#009;</xsl:text>
-			<xsl:text>Extent&#009;</xsl:text>
-			<xsl:text>Repository&#009;</xsl:text>
-			<xsl:text>RD-URL&#009;</xsl:text>
-			<xsl:text>Abtract</xsl:text>
+			<xsl:value-of select="$RD-Source-ID"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$RD-Type"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$Display-Entry"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$Title"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$Date"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$Language"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$Extent"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$Repository"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$RD-URL"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$Abstract"/>
 			<xsl:text>&#xA;</xsl:text>
 			<!-- new row -->
 			<xsl:for-each select="$process/snac:oneFindingAid/snac:otherData">
@@ -1016,15 +1056,15 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 					<xsl:choose>
 						<xsl:when test="not(ead:language or ead:languageset)">
 							<xsl:value-of select="normalize-space(.)"/>
-							
+
 						</xsl:when>
 						<xsl:when test="ead:descriptivenote">
 							<xsl:value-of select="normalize-space(ead:descriptivenote)"/>
-						
+
 						</xsl:when>
 						<xsl:when test="ead:languageset">
 							<xsl:for-each select="ead:languageset">
-								<xsl:value-of select="normalize-space(ead:language)"/>		
+								<xsl:value-of select="normalize-space(ead:language)"/>
 								<xsl:choose>
 									<xsl:when test="position() = last()"/>
 									<xsl:otherwise>
@@ -1095,19 +1135,25 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 	<xsl:template name="CPF-OR">
 		<xsl:result-document method="text" href="{$outputFolderPath}{$tempSourceID}/{$tempSourceID}CPF-Table.tsv">
 			<!-- The following creates first (label) row of table -->
-			<xsl:text>Source-CPF-ID&#009;</xsl:text>
-			<xsl:text>Related-ID&#009;</xsl:text>
-			<xsl:text>entityType&#009;</xsl:text>
-			<xsl:text>nameEntry&#009;</xsl:text>
-			<xsl:text>Date&#009;</xsl:text>
-			<xsl:text>AssociatedSubject&#009;</xsl:text>
-			<xsl:text>AssociatedPlace&#009;</xsl:text>
-			<xsl:text>Occupation&#009;</xsl:text>
-			<xsl:text>Function&#009;</xsl:text>
-			<xsl:text>RD-role&#009;</xsl:text>
-			<xsl:text>RD-arcrole&#009;</xsl:text>
-			<xsl:text>RD-Source-ID&#009;</xsl:text>
-			<xsl:text>biogHist</xsl:text>
+			<xsl:value-of select="$CPF-Source-ID"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$SameAs-ID"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$CPF-Type"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$NameEntry"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$Date"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$Subject"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$Place"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$Occupation"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$Function"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$BiogHist"/>
 			<xsl:text>&#xA;</xsl:text>
 
 			<xsl:for-each select="$process/snac:oneFindingAid/snac:entity">
@@ -1216,22 +1262,6 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 					</xsl:for-each>
 				</xsl:if>
 				<xsl:text>&#009;</xsl:text>
-				<!-- RD-role -->
-				<xsl:text>ArchivalResource</xsl:text>
-				<xsl:text>&#009;</xsl:text>
-				<!-- RD-arcrole -->
-				<xsl:choose>
-					<xsl:when test="@source = 'origination'">
-						<xsl:text>creatorOf</xsl:text>
-					</xsl:when>
-					<xsl:otherwise>
-						<xsl:text>referencedIn</xsl:text>
-					</xsl:otherwise>
-				</xsl:choose>
-				<xsl:text>&#009;</xsl:text>
-				<!-- RD-Source-ID -->
-				<xsl:value-of select="ancestor::snac:oneFindingAid/snac:otherData/snac:eadPath"/>
-				<xsl:text>&#009;</xsl:text>
 				<!-- biogHist -->
 				<xsl:if test="@source = 'origination'">
 					<xsl:for-each select="ancestor::snac:oneFindingAid/snac:otherData/ead:bioghist">
@@ -1254,24 +1284,56 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 		</xsl:result-document>
 	</xsl:template>
 
+
 	<xsl:template name="Join-OR">
-		<xsl:result-document method="text" href="{$outputFolderPath}{$tempSourceID}/{$tempSourceID}CPF-Join-Table.tsv">
+		<xsl:result-document method="text" href="{$outputFolderPath}{$tempSourceID}/{$tempSourceID}Join-Table.tsv">
 			<!-- The following creates first (label) row of table -->
-			<xsl:text>Source-CPFAnchor-ID&#009;</xsl:text>
-			<xsl:text>Role&#009;</xsl:text>
-			<xsl:text>ArcRole&#009;</xsl:text>
-			<xsl:text>Source-CPFTarget-ID</xsl:text>
+			<xsl:value-of select="$CPF-Source-ID-Anchor"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$CPF-Type"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$CPF-Relation-Type"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$CPF-Source-ID-Target"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$RD-Type"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$RD-Relation-Type"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$RD-Source-ID"/>
 			<xsl:text>&#xA;</xsl:text>
+
 			<xsl:for-each select="$process/snac:oneFindingAid">
+
+
 				<xsl:variable name="allEntities">
 					<xsl:for-each select="snac:entity">
 						<snac:entity>
 							<xsl:copy-of select="@*"/>
 							<xsl:copy-of select="snac:normalFinal"/>
 							<xsl:copy-of select="ancestor::snac:oneFindingAid/snac:otherData/snac:eadPath"/>
+							<!-- RD-role -->
+							<snac:RD-role>ArchivalResource</snac:RD-role>
+							<!-- RD-arcrole -->
+							<xsl:choose>
+								<xsl:when test="@source = 'origination'">
+
+									<snac:RD-arcrole>creatorOf</snac:RD-arcrole>
+								</xsl:when>
+								<xsl:otherwise>
+
+									<snac:RD-arcrole>referencedIn</snac:RD-arcrole>
+								</xsl:otherwise>
+							</xsl:choose>
+							<!-- RD-Source-ID -->
+							<snac:RD-Source-ID>
+								<xsl:value-of select="ancestor::snac:oneFindingAid/snac:otherData/snac:eadPath"/>
+							</snac:RD-Source-ID>
 						</snac:entity>
 					</xsl:for-each>
 				</xsl:variable>
+
+
 				<xsl:for-each select="snac:entity">
 					<xsl:variable name="recordId">
 						<xsl:value-of select="@recordId"/>
@@ -1279,74 +1341,144 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 					<xsl:variable name="correspondedWith">
 						<xsl:value-of select="@correspondent"/>
 					</xsl:variable>
-					<xsl:choose>
-						<xsl:when test="@source = 'origination'">
-							<xsl:for-each select="$allEntities/snac:entity[not(@recordId = $recordId)]">
-								<!-- Source-CPFAnchor-ID -->
-								<xsl:value-of select="$recordId"/>
-								<xsl:text>&#009;</xsl:text>
-								<!-- Role -->
+					<xsl:variable name="rows">
+						<xsl:choose>
+
+							<xsl:when test="(@source = 'origination') and (@controlaccessCount = '0')">
+								<snac:Row>
+									<snac:Source-CPFAnchor-ID>
+										<xsl:value-of select="$recordId"/>
+									</snac:Source-CPFAnchor-ID>
+									<snac:Role/>
+									<snac:ArcRole/>
+									<snac:Source-CPFTarget-ID/>
+								</snac:Row>
+							</xsl:when>
+
+							<xsl:when test="@source = 'origination'">
+								<xsl:for-each select="$allEntities/snac:entity[not(@recordId = $recordId)]">
+									<snac:Row>
+										<snac:Source-CPFAnchor-ID>
+											<xsl:value-of select="$recordId"/>
+										</snac:Source-CPFAnchor-ID>
+										<snac:Role>
+											<xsl:choose>
+												<xsl:when test="exists(snac:normalFinal/snac:persname)">
+													<xsl:text>person</xsl:text>
+												</xsl:when>
+												<xsl:when test="exists(snac:normalFinal/snac:corpname)">
+													<xsl:text>corporateBody</xsl:text>
+												</xsl:when>
+												<xsl:when test="exists(snac:normalFinal/snac:famname)">
+													<xsl:text>family</xsl:text>
+												</xsl:when>
+											</xsl:choose>
+										</snac:Role>
+										<snac:ArcRole>
+											<xsl:choose>
+												<xsl:when test="@correspondent = 'yes'">
+													<xsl:text>correspondedWith</xsl:text>
+												</xsl:when>
+												<xsl:otherwise>
+													<xsl:text>associatedWith</xsl:text>
+												</xsl:otherwise>
+											</xsl:choose>
+										</snac:ArcRole>
+										<snac:Source-CPFTarget-ID>
+											<xsl:value-of select="@recordId"/>
+										</snac:Source-CPFTarget-ID>
+									</snac:Row>
+								</xsl:for-each>
+							</xsl:when>
+
+							<xsl:when test="@source = 'controlaccess' and @originationCount = '0'">
+								<xsl:for-each select="$allEntities/snac:entity[@recordId = $recordId]">
+									<snac:Row>
+										<snac:Source-CPFAnchor-ID>
+											<xsl:value-of select="$recordId"/>
+										</snac:Source-CPFAnchor-ID>
+										<snac:Role/>
+										<snac:ArcRole/>
+										<snac:Source-CPFTarget-ID/>
+									</snac:Row>
+								</xsl:for-each>
+							</xsl:when>
+
+							<xsl:when test="@source = 'controlaccess'">
+								<xsl:for-each select="$allEntities/snac:entity[@source = 'origination']">
+									<snac:Row>
+										<snac:Source-CPFAnchor-ID>
+											<xsl:value-of select="$recordId"/>
+										</snac:Source-CPFAnchor-ID>
+										<snac:Role>
+											<xsl:choose>
+												<xsl:when test="exists(snac:normalFinal/snac:persname)">
+													<xsl:text>person</xsl:text>
+												</xsl:when>
+												<xsl:when test="exists(snac:normalFinal/snac:corpname)">
+													<xsl:text>corporateBody</xsl:text>
+												</xsl:when>
+												<xsl:when test="exists(snac:normalFinal/snac:famname)">
+													<xsl:text>family</xsl:text>
+												</xsl:when>
+											</xsl:choose>
+										</snac:Role>
+										<snac:ArcRole>
+											<xsl:choose>
+												<xsl:when test="$correspondedWith = 'yes'">
+													<xsl:text>correspondedWith</xsl:text>
+												</xsl:when>
+												<xsl:otherwise>
+													<xsl:text>associatedWith</xsl:text>
+												</xsl:otherwise>
+											</xsl:choose>
+										</snac:ArcRole>
+										<snac:Source-CPFTarget-ID>
+											<xsl:value-of select="@recordId"/>
+										</snac:Source-CPFTarget-ID>
+									</snac:Row>
+								</xsl:for-each>
+							</xsl:when>
+							<xsl:otherwise> </xsl:otherwise>
+						</xsl:choose>
+					</xsl:variable>
+
+
+					<xsl:for-each select="$rows">
+						<xsl:for-each-group select="snac:Row" group-by="snac:Source-CPFAnchor-ID">
+							<xsl:value-of select="current-grouping-key()"/>
+							<xsl:for-each select="current-group()">
 								<xsl:choose>
-									<xsl:when test="exists(snac:normalFinal/snac:persname)">
-										<xsl:text>person</xsl:text>
-									</xsl:when>
-									<xsl:when test="exists(snac:normalFinal/snac:corpname)">
-										<xsl:text>corporateBody</xsl:text>
-									</xsl:when>
-									<xsl:when test="exists(snac:normalFinal/snac:famname)">
-										<xsl:text>family</xsl:text>
-									</xsl:when>
-								</xsl:choose>
-								<xsl:text>&#009;</xsl:text>
-								<!-- ArcRole -->
-								<xsl:choose>
-									<xsl:when test="@correspondent = 'yes'">
-										<xsl:text>correspondedWith</xsl:text>
+									<xsl:when test="position() = 1">
+										<xsl:text>&#009;</xsl:text>
+										<xsl:value-of select="snac:Role"/>
+										<xsl:text>&#009;</xsl:text>
+										<xsl:value-of select="snac:ArcRole"/>
+										<xsl:text>&#009;</xsl:text>
+										<xsl:value-of select="snac:Source-CPFTarget-ID"/>
+										<xsl:text>&#009;</xsl:text>
+										<xsl:text>ArchivalResource</xsl:text>
+										<xsl:text>&#009;</xsl:text>
+										<!-- RD-arcrole -->
+										<xsl:value-of select="$allEntities/snac:entity[./@recordId = current-grouping-key()]/snac:RD-arcrole"/>
+										<xsl:text>&#009;</xsl:text>
+										<!-- RD-Source-ID -->
+										<xsl:value-of select="$allEntities/snac:entity[./@recordId = current-grouping-key()]/snac:RD-Source-ID"/>
+										<xsl:text>&#xA;</xsl:text>
 									</xsl:when>
 									<xsl:otherwise>
-										<xsl:text>associatedWith</xsl:text>
+										<xsl:text>&#009;</xsl:text>
+										<xsl:value-of select="snac:Role"/>
+										<xsl:text>&#009;</xsl:text>
+										<xsl:value-of select="snac:ArcRole"/>
+										<xsl:text>&#009;</xsl:text>
+										<xsl:value-of select="snac:Source-CPFTarget-ID"/>
+										<xsl:text>&#xA;</xsl:text>
 									</xsl:otherwise>
 								</xsl:choose>
-								<xsl:text>&#009;</xsl:text>
-								<!-- Source-CPFTarget-ID -->
-								<xsl:value-of select="@recordId"/>
-								<xsl:text>&#xA;</xsl:text>
 							</xsl:for-each>
-						</xsl:when>
-						<xsl:otherwise>
-							<xsl:for-each select="$allEntities/snac:entity[@source = 'origination']">
-								<!-- Source-CPFAnchor-ID -->
-								<xsl:value-of select="$recordId"/>
-								<xsl:text>&#009;</xsl:text>
-								<!-- Role -->
-								<xsl:choose>
-									<xsl:when test="exists(snac:normalFinal/snac:persname)">
-										<xsl:text>person</xsl:text>
-									</xsl:when>
-									<xsl:when test="exists(snac:normalFinal/snac:corpname)">
-										<xsl:text>corporateBody</xsl:text>
-									</xsl:when>
-									<xsl:when test="exists(snac:normalFinal/snac:famname)">
-										<xsl:text>family</xsl:text>
-									</xsl:when>
-								</xsl:choose>
-								<xsl:text>&#009;</xsl:text>
-								<!-- ArcRole -->
-								<xsl:choose>
-									<xsl:when test="$correspondedWith = 'yes'">
-										<xsl:text>correspondedWith</xsl:text>
-									</xsl:when>
-									<xsl:otherwise>
-										<xsl:text>associatedWith</xsl:text>
-									</xsl:otherwise>
-								</xsl:choose>
-								<xsl:text>&#009;</xsl:text>
-								<!-- Source-CPFTarget-ID -->
-								<xsl:value-of select="@recordId"/>
-								<xsl:text>&#xA;</xsl:text>
-							</xsl:for-each>
-						</xsl:otherwise>
-					</xsl:choose>
+						</xsl:for-each-group>
+					</xsl:for-each>
 				</xsl:for-each>
 			</xsl:for-each>
 		</xsl:result-document>
@@ -1426,13 +1558,13 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 			<snac:countryCode>
 				<xsl:text>US</xsl:text>
 			</snac:countryCode>
-			
+
 			<snac:languageOfDescription>
 				<xsl:text>eng</xsl:text>
 			</snac:languageOfDescription>
-			
+
 			<xsl:copy-of select="ead/eadheader/eadid | ead/control/recordid"/>
-			
+
 			<did xmlns="http://ead3.archivists.org/schema/">
 				<xsl:for-each select="ead/archdesc/did/*">
 					<xsl:copy-of select="."/>
