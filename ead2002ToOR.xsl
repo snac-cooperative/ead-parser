@@ -2,6 +2,7 @@
 <xsl:stylesheet xmlns:ead="urn:isbn:1-931666-22-9" xmlns:functx="http://www.functx.com" xmlns:snac="snac"
 	xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xs="http://www.w3.org/2001/XMLSchema"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xpath-default-namespace="urn:isbn:1-931666-22-9" version="3.0">
+	
 	<!--
  @author Daniel Pitti 
  @license https://opensource.org/licenses/BSD-3-Clause BSD 3-Clause
