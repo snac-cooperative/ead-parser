@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:ead="urn:isbn:1-931666-22-9" xmlns:functx="http://www.functx.com" xmlns:snac="snac"
 	xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xs="http://www.w3.org/2001/XMLSchema"
-	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xpath-default-namespace="urn:isbn:1-931666-22-9" version="3.0">
-	
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xpath-default-namespace="urn:isbn:1-931666-22-9"  version="3.0">
 	<!--
  @author Daniel Pitti 
  @license https://opensource.org/licenses/BSD-3-Clause BSD 3-Clause
@@ -10,7 +9,8 @@
 -->
 	<!-- To convert from EAD2002 to EAD3, or vice-versa
 	1. xmlns:ead="http://ead3.archivists.org/schema/" to/from xmlns:ead="urn:isbn:1-931666-22-9"
-	2. xpath-default-namespace="http://ead3.archivists.org/schema/" to/from xpath-default-namespace="urn:isbn:1-931666-22-9
+	2. xpath-default-namespace="http://ead3.archivists.org/schema/" to/from
+	xpath-default-namespace="urn:isbn:1-931666-22-9"
 	3. Search for namespace string and replace with appropriate string.
 	4. change variable tempSourceId to empty string in both versions
 	
@@ -118,15 +118,17 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 	<!-- ************************************************************************************************** -->
 	<xsl:variable name="Abstract">Abstract</xsl:variable>
 	<xsl:variable name="BiogHist">BiogHist</xsl:variable>
+	<xsl:variable name="Citation">Citation</xsl:variable>
+	<xsl:variable name="Citation-URL">Citation-URL</xsl:variable>
+	<xsl:variable name="Citation-FoundData">Citation-FoundData</xsl:variable>
 	<xsl:variable name="CPF-Relation-Type">CPF-Relation-Type</xsl:variable>
 	<xsl:variable name="CPF-Source-ID">CPF-Source-ID</xsl:variable>
 	<xsl:variable name="CPF-Source-ID-Anchor">CPF-Source-ID-Anchor</xsl:variable>
 	<xsl:variable name="CPF-Source-ID-Target">CPF-Source-ID-Target</xsl:variable>
 	<xsl:variable name="CPF-Type">CPF-Type</xsl:variable>
 	<xsl:variable name="Date">Date</xsl:variable>
-	<xsl:variable name="Display-Entry">Display-Entry</xsl:variable>
 	<xsl:variable name="Extent">Extent</xsl:variable>
-	<xsl:variable name="Function">Function</xsl:variable>
+	<xsl:variable name="Activity">Activity</xsl:variable>
 	<xsl:variable name="Language">Language</xsl:variable>
 	<xsl:variable name="NameEntry">NameEntry</xsl:variable>
 	<xsl:variable name="Occupation">Occupation</xsl:variable>
@@ -136,7 +138,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 	<xsl:variable name="RD-Type">RD-Type</xsl:variable>
 	<xsl:variable name="RD-URL">RD-URL</xsl:variable>
 	<xsl:variable name="Repository">Repository</xsl:variable>
-	<xsl:variable name="SameAs-ID">SameAs-ID</xsl:variable>
+	<xsl:variable name="Related-ID">Related-ID</xsl:variable>
 	<xsl:variable name="Subject">Subject</xsl:variable>
 	<xsl:variable name="Title">Title</xsl:variable>
 
@@ -956,7 +958,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 		<xsl:choose>
 			<xsl:when test="$processingType = 'CPFOut'">
 				<xsl:for-each select="$process/*">
-					<xsl:variable name="recordId" select="./control/recordId" xpath-default-namespace="urn:isbn:1-931666-22-9"/>
+					<xsl:variable name="recordId" select="./control/recordId" xpath-default-namespace="urn:isbn:1-931666-22-9" />
 					<xsl:result-document href="{$outputFolderPath}{$tempSourceID}/{$recordId}.xml" indent="yes">
 						<xsl:processing-instruction name="oxygen">
 							<xsl:text>RNGSchema="http://socialarchive.iath.virginia.edu/shared/cpf.rng" type="xml"</xsl:text>
@@ -1003,8 +1005,6 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 			<xsl:text>&#009;</xsl:text>
 			<xsl:value-of select="$RD-Type"/>
 			<xsl:text>&#009;</xsl:text>
-			<xsl:value-of select="$Display-Entry"/>
-			<xsl:text>&#009;</xsl:text>
 			<xsl:value-of select="$Title"/>
 			<xsl:text>&#009;</xsl:text>
 			<xsl:value-of select="$Date"/>
@@ -1021,22 +1021,12 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 			<xsl:text>&#xA;</xsl:text>
 			<!-- new row -->
 			<xsl:for-each select="$process/snac:oneFindingAid/snac:otherData">
-				<!--xsl:for-each select="*">
-					<xsl:message>
-						<xsl:value-of select="name()"/>
-						<xsl:text> ++ </xsl:text>
-						<xsl:value-of select="namespace-uri()"/>
-					</xsl:message>
-				</xsl:for-each-->
 				<!-- Source-RD-ID -->
 				<xsl:value-of select="normalize-space(snac:eadPath)"/>
 				<xsl:text>&#009;</xsl:text>
 				<!-- RD-Role -->
 				<xsl:text>ArchivalResource</xsl:text>
 				<xsl:text>&#009;</xsl:text>
-				<!-- Display-Entry -->
-				<xsl:value-of select="normalize-space(ead:did/ead:unittitle)"/>
-				<xsl:text> &#009;</xsl:text>
 				<!-- Title -->
 				<xsl:value-of select="normalize-space(ead:did/ead:unittitle)"/>
 				<xsl:text> &#009;</xsl:text>
@@ -1138,7 +1128,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 			<!-- The following creates first (label) row of table -->
 			<xsl:value-of select="$CPF-Source-ID"/>
 			<xsl:text>&#009;</xsl:text>
-			<xsl:value-of select="$SameAs-ID"/>
+			<xsl:value-of select="$Related-ID"/>
 			<xsl:text>&#009;</xsl:text>
 			<xsl:value-of select="$CPF-Type"/>
 			<xsl:text>&#009;</xsl:text>
@@ -1152,9 +1142,15 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 			<xsl:text>&#009;</xsl:text>
 			<xsl:value-of select="$Occupation"/>
 			<xsl:text>&#009;</xsl:text>
-			<xsl:value-of select="$Function"/>
+			<xsl:value-of select="$Activity"/>
 			<xsl:text>&#009;</xsl:text>
 			<xsl:value-of select="$BiogHist"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$Citation"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$Citation-URL"/>
+			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$Citation-FoundData"/>
 			<xsl:text>&#xA;</xsl:text>
 
 			<xsl:for-each select="$process/snac:oneFindingAid/snac:entity">
@@ -1279,9 +1275,43 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 						<xsl:text disable-output-escaping="yes">&lt;/biogHist&gt;</xsl:text>
 					</xsl:for-each>
 				</xsl:if>
+				<!-- end of cell -->
+				<xsl:text>&#009;</xsl:text>
+
+
+				<!-- Citation (of source evidence) -->
+				<xsl:value-of select="normalize-space(../snac:otherData/ead:did/ead:unittitle)"/>
+
+
+
+				<xsl:if test="../snac:otherData/ead:did/ead:unitdate">
+					<xsl:text>, </xsl:text>
+					<xsl:for-each select="../snac:otherData/ead:did/ead:unitdate">
+						<xsl:value-of select="normalize-space(.)"/>
+						<xsl:if test="position() &gt; 1">
+							<xsl:text> </xsl:text>
+						</xsl:if>
+					</xsl:for-each>
+					
+				</xsl:if>
+				<xsl:text> (</xsl:text>
+				<xsl:value-of select="normalize-space(../snac:otherData/ead:did/ead:repository/ead:corpname)"/>
+				<xsl:text>)</xsl:text>
+				<xsl:text>&#009;</xsl:text>
+
+				<!-- Citation-URL -->
+				<xsl:value-of select="normalize-space(../snac:otherData/(ead:eadid/@url | ead:recordid/@instanceurl))"/>
+				<xsl:text>&#009;</xsl:text>
+
+				<!-- Citation-FoundData -->
+				<xsl:for-each select="normalize-space(snac:rawExtract/(snac:persname | snac:corpname | snac:famname))">
+					<xsl:value-of select="."/>
+				</xsl:for-each>
+
 				<!-- end of row -->
 				<xsl:text>&#xA;</xsl:text>
 			</xsl:for-each>
+
 		</xsl:result-document>
 	</xsl:template>
 
