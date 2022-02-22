@@ -1,9 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
- @author Daniel Pitti 
- @license https://opensource.org/licenses/BSD-3-Clause BSD 3-Clause
- @copyright 2020 the Rector and Visitors of the University of Virginia
--->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="3.0">
 
 	<xsl:variable name="aposLiteral">'</xsl:variable>

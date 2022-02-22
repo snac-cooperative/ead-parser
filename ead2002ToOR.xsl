@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:ead="urn:isbn:1-931666-22-9" xmlns:functx="http://www.functx.com" xmlns:snac="snac"
 	xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xs="http://www.w3.org/2001/XMLSchema"
-	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xpath-default-namespace="urn:isbn:1-931666-22-9"  version="3.0">
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xpath-default-namespace="urn:isbn:1-931666-22-9" version="3.0">
+
+
 	<!--
  @author Daniel Pitti 
  @license https://opensource.org/licenses/BSD-3-Clause BSD 3-Clause
@@ -73,7 +75,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 
 	<xsl:variable name="tempSourceID">
 		<xsl:text></xsl:text>
-		<!-- LoC nypl2019 -->
+		<!-- LoC nypl2019  amnh-1 -->
 		<!-- reduce to empty string for production -->
 	</xsl:variable>
 
@@ -90,6 +92,13 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 
 	<!-- ******************************************** -->
 
+	<xsl:variable name="incomingChars">
+		<xsl:text>“”’</xsl:text>
+	</xsl:variable>
+	<xsl:variable name="outgoingChars">
+		<xsl:text>""'</xsl:text>
+	</xsl:variable>
+
 	<xsl:variable name="findingAids" select="uri-collection(concat($sourceFolderPath, '?select=*.xml;recurse=yes'))">
 		<!-- This pulls in the URI whereas collection() pulls in the document -->
 	</xsl:variable>
@@ -98,7 +107,17 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 		<xsl:value-of select="count($findingAids)"/>
 	</xsl:variable>
 
+	<xsl:variable name="colSeperator">
+		<xsl:text>^%%^</xsl:text>
+	</xsl:variable>
+
+	<xsl:variable name="cellSeperator">
+		<xsl:text>#%%#</xsl:text>
+	</xsl:variable>
+
 	<xsl:strip-space elements="*"/>
+
+
 
 
 	<xsl:key name="sourceCodeName" match="source" use="sourceCode"/>
@@ -130,6 +149,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 	<xsl:variable name="Extent">Extent</xsl:variable>
 	<xsl:variable name="Activity">Activity</xsl:variable>
 	<xsl:variable name="Language">Language</xsl:variable>
+	<xsl:variable name="LanguageCode">LangCode</xsl:variable>
 	<xsl:variable name="NameEntry">NameEntry</xsl:variable>
 	<xsl:variable name="Occupation">Occupation</xsl:variable>
 	<xsl:variable name="Place">Place</xsl:variable>
@@ -156,6 +176,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 
 
 			<xsl:for-each select="document(.)">
+
 
 
 				<!-- RAW EXTRACTION extracts all tagged names and origination, tagged or not. For the latter it attemts to determine type, and if unable
@@ -958,7 +979,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 		<xsl:choose>
 			<xsl:when test="$processingType = 'CPFOut'">
 				<xsl:for-each select="$process/*">
-					<xsl:variable name="recordId" select="./control/recordId" xpath-default-namespace="urn:isbn:1-931666-22-9" />
+					<xsl:variable name="recordId" select="./control/recordId" xpath-default-namespace="urn:isbn:1-931666-22-9"/>
 					<xsl:result-document href="{$outputFolderPath}{$tempSourceID}/{$recordId}.xml" indent="yes">
 						<xsl:processing-instruction name="oxygen">
 							<xsl:text>RNGSchema="http://socialarchive.iath.virginia.edu/shared/cpf.rng" type="xml"</xsl:text>
@@ -1011,6 +1032,8 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 			<xsl:text>&#009;</xsl:text>
 			<xsl:value-of select="$Language"/>
 			<xsl:text>&#009;</xsl:text>
+			<xsl:value-of select="$LanguageCode"/>
+			<xsl:text>&#009;</xsl:text>
 			<xsl:value-of select="$Extent"/>
 			<xsl:text>&#009;</xsl:text>
 			<xsl:value-of select="$Repository"/>
@@ -1028,7 +1051,9 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 				<xsl:text>ArchivalResource</xsl:text>
 				<xsl:text>&#009;</xsl:text>
 				<!-- Title -->
-				<xsl:value-of select="normalize-space(ead:did/ead:unittitle)"/>
+				<xsl:for-each select="ead:did/ead:unittitle">
+					<xsl:apply-templates mode="RD-unititle" select="text() | *"/>
+				</xsl:for-each>
 				<xsl:text> &#009;</xsl:text>
 				<!-- Date -->
 				<xsl:for-each select="ead:did/ead:unitdate">
@@ -1042,42 +1067,58 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 				</xsl:for-each>
 				<xsl:text>&#009;</xsl:text>
 
-				<!-- Lang -->
+				<!-- Language(s) of the resource -->
 				<xsl:for-each select="ead:did/ead:langmaterial">
 					<xsl:choose>
-						<xsl:when test="not(ead:language or ead:languageset)">
-							<xsl:value-of select="normalize-space(.)"/>
-
-						</xsl:when>
-						<xsl:when test="ead:descriptivenote">
-							<xsl:value-of select="normalize-space(ead:descriptivenote)"/>
-
-						</xsl:when>
-						<xsl:when test="ead:languageset">
-							<xsl:for-each select="ead:languageset">
-								<xsl:value-of select="normalize-space(ead:language)"/>
+						<xsl:when test=".//ead:language">
+							<xsl:for-each select=".//ead:language">
+								<xsl:value-of select="."/>
 								<xsl:choose>
 									<xsl:when test="position() = last()"/>
 									<xsl:otherwise>
-										<xsl:text>; </xsl:text>
+										<xsl:value-of select="$cellSeperator"/>
 									</xsl:otherwise>
 								</xsl:choose>
 							</xsl:for-each>
 						</xsl:when>
 						<xsl:otherwise>
-							<xsl:for-each select="ead:language">
-								<xsl:value-of select="normalize-space(.)"/>
+							<xsl:value-of select="normalize-space(.)"/>			
+						</xsl:otherwise>
+					</xsl:choose>
+					<xsl:choose>
+						<xsl:when test="position() = last()"/>
+						<xsl:otherwise>
+							<xsl:value-of select="$cellSeperator"/>
+						</xsl:otherwise>
+					</xsl:choose>
+				</xsl:for-each>
+				
+				<xsl:text>&#009;</xsl:text>
+				<!-- Language Code -->
+				
+				<xsl:for-each select="ead:did/ead:langmaterial">
+					<xsl:choose>
+						<xsl:when test=".//ead:language">
+							<xsl:for-each select=".//ead:language">
+								<xsl:value-of select="./@langcode"/>
 								<xsl:choose>
 									<xsl:when test="position() = last()"/>
 									<xsl:otherwise>
-										<xsl:text>; </xsl:text>
+										<xsl:value-of select="$cellSeperator"/>
 									</xsl:otherwise>
-								</xsl:choose>
+								</xsl:choose>					
 							</xsl:for-each>
+						</xsl:when>
+						<xsl:otherwise>
+							<xsl:text></xsl:text>
 						</xsl:otherwise>
 					</xsl:choose>
-
-
+					<xsl:choose>
+						<xsl:when test="position() = last()"/>
+						<xsl:otherwise>
+							<xsl:value-of select="$cellSeperator"/>
+						</xsl:otherwise>
+					</xsl:choose>	
 				</xsl:for-each>
 
 				<xsl:text>&#009;</xsl:text>
@@ -1193,12 +1234,12 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 				<xsl:for-each select="snac:existDates/snac:dateRange">
 					<xsl:for-each select="*[not(. = '')]">
 						<xsl:value-of select="normalize-space(./@snac:standardDate)"/>
-						<xsl:text>^</xsl:text>
+						<xsl:value-of select="$colSeperator"/>
 						<xsl:value-of select="substring-after(normalize-space(./@snac:localType), '#')"/>
 						<xsl:choose>
 							<xsl:when test="position() = last()"/>
 							<xsl:otherwise>
-								<xsl:text>#</xsl:text>
+								<xsl:value-of select="$cellSeperator"/>
 							</xsl:otherwise>
 						</xsl:choose>
 					</xsl:for-each>
@@ -1212,7 +1253,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 						<xsl:choose>
 							<xsl:when test="position() = last()"/>
 							<xsl:otherwise>
-								<xsl:text>#</xsl:text>
+								<xsl:value-of select="$cellSeperator"/>
 							</xsl:otherwise>
 						</xsl:choose>
 					</xsl:for-each>
@@ -1227,7 +1268,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 						<xsl:choose>
 							<xsl:when test="position() = last()"/>
 							<xsl:otherwise>
-								<xsl:text>#</xsl:text>
+								<xsl:value-of select="$cellSeperator"/>
 							</xsl:otherwise>
 						</xsl:choose>
 					</xsl:for-each>
@@ -1240,7 +1281,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 						<xsl:choose>
 							<xsl:when test="position() = last()"/>
 							<xsl:otherwise>
-								<xsl:text>#</xsl:text>
+								<xsl:value-of select="$cellSeperator"/>
 							</xsl:otherwise>
 						</xsl:choose>
 					</xsl:for-each>
@@ -1253,15 +1294,26 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 						<xsl:choose>
 							<xsl:when test="position() = last()"/>
 							<xsl:otherwise>
-								<xsl:text>#</xsl:text>
+								<xsl:value-of select="$cellSeperator"/>
 							</xsl:otherwise>
 						</xsl:choose>
 					</xsl:for-each>
 				</xsl:if>
 				<xsl:text>&#009;</xsl:text>
+
 				<!-- biogHist -->
 				<xsl:if test="@source = 'origination'">
-					<xsl:for-each select="ancestor::snac:oneFindingAid/snac:otherData/ead:bioghist">
+					<xsl:for-each select="ancestor::snac:oneFindingAid/snac:otherData">
+						<xsl:variable name="numberOfbiogHist">
+							<xsl:value-of select="count(ead:bioghist)"/>
+						</xsl:variable>
+						<!--xsl:message>
+							<xsl:value-of select="$numberOfbiogHist"/>
+						</xsl:message-->
+						<xsl:for-each select="ead:bioghist">
+
+							<xsl:apply-templates mode="OR-biogHist" select="."/>
+							<!--  ***************************************************************
 						<xsl:text disable-output-escaping="yes">&lt;biogHist&gt;</xsl:text>
 						<xsl:for-each select=".//*">
 							<xsl:text disable-output-escaping="yes">&lt;</xsl:text>
@@ -1273,6 +1325,8 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 							<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
 						</xsl:for-each>
 						<xsl:text disable-output-escaping="yes">&lt;/biogHist&gt;</xsl:text>
+						**************************************************************************-->
+						</xsl:for-each>
 					</xsl:for-each>
 				</xsl:if>
 				<!-- end of cell -->
@@ -1280,20 +1334,10 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 
 
 				<!-- Citation (of source evidence) -->
-				<xsl:value-of select="normalize-space(../snac:otherData/ead:did/ead:unittitle)"/>
-
-
-
-				<xsl:if test="../snac:otherData/ead:did/ead:unitdate">
-					<xsl:text>, </xsl:text>
-					<xsl:for-each select="../snac:otherData/ead:did/ead:unitdate">
-						<xsl:value-of select="normalize-space(.)"/>
-						<xsl:if test="position() &gt; 1">
-							<xsl:text> </xsl:text>
-						</xsl:if>
-					</xsl:for-each>
-					
-				</xsl:if>
+				<!--xsl:value-of select="normalize-space(../snac:otherData/ead:did/ead:unittitle)"/-->
+				<xsl:for-each select="../snac:otherData/ead:did/ead:unittitle">
+					<xsl:apply-templates mode="RD-unititle" select="text() | *"/>
+				</xsl:for-each>
 				<xsl:text> (</xsl:text>
 				<xsl:value-of select="normalize-space(../snac:otherData/ead:did/ead:repository/ead:corpname)"/>
 				<xsl:text>)</xsl:text>
@@ -1335,8 +1379,6 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 			<xsl:text>&#xA;</xsl:text>
 
 			<xsl:for-each select="$process/snac:oneFindingAid">
-
-
 				<xsl:variable name="allEntities">
 					<xsl:for-each select="snac:entity">
 						<snac:entity>
@@ -2026,5 +2068,146 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 
 	</xsl:template>
 
+	<xsl:template mode="RD-unititle" match="text()">
+		<xsl:value-of select="normalize-space(.)"/>
+		<xsl:text> </xsl:text>
+	</xsl:template>
+
+	<xsl:template mode="RD-unititle" match="ead:date">
+		<xsl:variable name="tempUnitdate">
+			<xsl:for-each select=".">
+				<xsl:value-of select="."/>
+				<xsl:text> </xsl:text>
+			</xsl:for-each>
+		</xsl:variable>
+		<xsl:value-of select="normalize-space($tempUnitdate)"/>
+		<xsl:text> </xsl:text>
+	</xsl:template>
+
+	<xsl:template mode="OR-biogHist" match="ead:bioghist">
+		<xsl:text disable-output-escaping="yes">&lt;biogHist&gt;</xsl:text>
+		<xsl:apply-templates mode="OR-biogHist" select="*"/>
+
+		<xsl:text disable-output-escaping="yes">&lt;/biogHist&gt;</xsl:text>
+	</xsl:template>
+
+	<!--xsl:template mode="OR-biogHist" match="ead:p | ead:blockquote">
+		<xsl:text disable-output-escaping="yes">&lt;p&gt;</xsl:text>
+		<xsl:apply-templates mode="OR-biogHist" select="text()"/>
+		<xsl:text disable-output-escaping="yes">&lt;/p&gt;</xsl:text>
+	</xsl:template-->
+
+	<xsl:template mode="OR-biogHist" match="ead:p | ead:blockquote">
+		<xsl:variable name="tempBioghist">
+			<xsl:value-of select="."/>
+		</xsl:variable>
+		<xsl:text disable-output-escaping="yes">&lt;p&gt;</xsl:text>
+		<xsl:value-of disable-output-escaping="yes"
+			select="translate(replace(normalize-space($tempBioghist),'&amp;','&amp;amp;'),$incomingChars,$outgoingChars)"/>
+		<xsl:text disable-output-escaping="yes">&lt;/p&gt;</xsl:text>
+	</xsl:template>
+
+	<xsl:template mode="OR-biogHist" match="ead:chronlist">
+		<xsl:text disable-output-escaping="yes">&lt;chronList&gt;</xsl:text>
+		<xsl:apply-templates mode="OR-biogHist" select="*"/>
+		<xsl:text disable-output-escaping="yes">&lt;/chronList&gt;</xsl:text>
+	</xsl:template>
+
+
+	<xsl:template mode="OR-biogHist" match="ead:chronitem">
+		<xsl:text disable-output-escaping="yes">&lt;chronItem&gt;</xsl:text>
+		<xsl:apply-templates mode="OR-biogHist" select="*"/>
+		<xsl:text disable-output-escaping="yes">&lt;/chronItem&gt;</xsl:text>
+	</xsl:template>
+
+	<xsl:template mode="OR-biogHist" match="ead:date | ead:datesingle">
+		<xsl:text disable-output-escaping="yes">&lt;date&gt;</xsl:text>
+		<xsl:choose>
+			<xsl:when test="@standarddate">
+				<xsl:text> @standarddate="</xsl:text>
+				<xsl:value-of select="@standarddate"/>
+				<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
+				<xsl:text>"</xsl:text>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
+			</xsl:otherwise>
+		</xsl:choose>
+		<xsl:value-of select="."/>
+		<xsl:text disable-output-escaping="yes">&lt;/date&gt;</xsl:text>
+	</xsl:template>
+
+	<xsl:template mode="OR-biogHist" match="ead:daterange">
+		<xsl:text disable-output-escaping="yes">&lt;dateRange&gt;</xsl:text>
+		<xsl:apply-templates mode="OR-biogHist" select="*"/>
+		<xsl:text disable-output-escaping="yes">&lt;/dateRange&gt;</xsl:text>
+	</xsl:template>
+
+	<xsl:template mode="OR-biogHist" match="ead:fromdate">
+		<xsl:text disable-output-escaping="yes">&lt;fromDate</xsl:text>
+		<xsl:choose>
+			<xsl:when test="@standarddate">
+				<xsl:text> @standarddate="</xsl:text>
+				<xsl:value-of select="@standarddate"/>
+				<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
+				<xsl:text>"</xsl:text>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
+			</xsl:otherwise>
+		</xsl:choose>
+		<xsl:value-of select="."/>
+		<xsl:text disable-output-escaping="yes">&lt;/fromDate&gt;</xsl:text>
+	</xsl:template>
+
+	<xsl:template mode="OR-biogHist" match="ead:todate">
+		<xsl:text disable-output-escaping="yes">&lt;toDate</xsl:text>
+		<xsl:choose>
+			<xsl:when test="@standarddate">
+				<xsl:text> @standarddate="</xsl:text>
+				<xsl:value-of select="@standarddate"/>
+				<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
+				<xsl:text>"</xsl:text>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
+			</xsl:otherwise>
+		</xsl:choose>
+		<xsl:value-of select="normalize-space(.)"/>
+		<xsl:text disable-output-escaping="yes">&lt;/toDate&gt;</xsl:text>
+	</xsl:template>
+
+	<xsl:template mode="OR-biogHist" match="ead:event">
+		<xsl:text disable-output-escaping="yes">&lt;event&gt;</xsl:text>
+		<xsl:apply-templates mode="OR-biogHist" select="text()"/>
+		<xsl:text disable-output-escaping="yes">&lt;/event&gt;</xsl:text>
+	</xsl:template>
+
+	<xsl:template mode="OR-biogHist" match="ead:head | ead:listhead | ead:list | ead:blockquote | ead:table | ead:dateset">
+		<!--xsl:message>
+			<xsl:text>Warning: Tag </xsl:text>
+			<xsl:value-of select="name(.)"/>
+			<xsl:text> did not match.</xsl:text>
+		</xsl:message-->
+	</xsl:template>
+
+	<xsl:template mode="OR-biogHist" match="text()">
+
+		<xsl:value-of disable-output-escaping="yes"
+			select="translate(replace(normalize-space(.),'&amp;','&amp;amp;'),$incomingChars,$outgoingChars)"/>
+
+	</xsl:template>
+
+	<!-- 
+	<xsl:for-each select=".//*">
+			<xsl:text disable-output-escaping="yes">&lt;</xsl:text>
+			<xsl:value-of select="name()"/>
+			<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
+			<xsl:value-of select="normalize-space(.)"/>
+			<xsl:text disable-output-escaping="yes">&lt;/</xsl:text>
+			<xsl:value-of select="name()"/>
+			<xsl:text disable-output-escaping="yes">&gt;</xsl:text>
+		</xsl:for-each>
+	-->
 
 </xsl:stylesheet>

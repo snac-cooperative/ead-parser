@@ -1,9 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
- @author Daniel Pitti 
- @license https://opensource.org/licenses/BSD-3-Clause BSD 3-Clause
- @copyright 2020 the Rector and Visitors of the University of Virginia
--->
 <xsl:stylesheet 
 	xmlns:snac="snac"
 	xmlns:xs="http://www.w3.org/2001/XMLSchema" 
@@ -19,7 +14,7 @@
 				<xsl:analyze-string flags="x"
 					regex="
 					^
-					( ([\p{{L}}]+\.?[\-'\s]?)+ )	
+					(  ([\p{{L}}]+\.?[\-'\s]?)+ )	
 					(,\s)?			
 					(([\p{{L}}]+\.?[\-'\s]?)*)			
 					(\( (([\p{{L}}]+\.?[\-'\s]?)+) \))?
