@@ -76,7 +76,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 
 	<xsl:variable name="tempSourceID">
 		<xsl:text></xsl:text>
-		<!-- LoC nypl2019  amnh-1 -->
+		<!--   nypl2019  amnh-1 -->
 		<!-- reduce to empty string for production -->
 	</xsl:variable>
 
@@ -2128,7 +2128,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 	</xsl:template>
 
 	<xsl:template mode="OR-biogHist" match="ead:date | ead:datesingle">
-		<xsl:text disable-output-escaping="yes">&lt;date&gt;</xsl:text>
+		<xsl:text disable-output-escaping="yes">&lt;date</xsl:text>
 		<xsl:choose>
 			<xsl:when test="@standarddate">
 				<xsl:text> @standarddate="</xsl:text>

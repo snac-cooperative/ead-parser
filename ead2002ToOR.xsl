@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:ead="urn:isbn:1-931666-22-9" xmlns:functx="http://www.functx.com" xmlns:snac="snac"
 	xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xs="http://www.w3.org/2001/XMLSchema"
-	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xpath-default-namespace="urn:isbn:1-931666-22-9" version="3.0">
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xpath-default-namespace="urn:isbn:1-931666-22-9"
+	version="3.0">
 
 
 	<!--
@@ -75,7 +76,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 
 	<xsl:variable name="tempSourceID">
 		<xsl:text></xsl:text>
-		<!-- LoC nypl2019  amnh-1 -->
+		<!--   nypl2019  amnh-1 -->
 		<!-- reduce to empty string for production -->
 	</xsl:variable>
 
@@ -979,7 +980,8 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 		<xsl:choose>
 			<xsl:when test="$processingType = 'CPFOut'">
 				<xsl:for-each select="$process/*">
-					<xsl:variable name="recordId" select="./control/recordId" xpath-default-namespace="urn:isbn:1-931666-22-9"/>
+					<xsl:variable name="recordId" select="./control/recordId"
+						xpath-default-namespace="urn:isbn:1-931666-22-9"/>
 					<xsl:result-document href="{$outputFolderPath}{$tempSourceID}/{$recordId}.xml" indent="yes">
 						<xsl:processing-instruction name="oxygen">
 							<xsl:text>RNGSchema="http://socialarchive.iath.virginia.edu/shared/cpf.rng" type="xml"</xsl:text>
@@ -1082,7 +1084,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 							</xsl:for-each>
 						</xsl:when>
 						<xsl:otherwise>
-							<xsl:value-of select="normalize-space(.)"/>			
+							<xsl:value-of select="normalize-space(.)"/>
 						</xsl:otherwise>
 					</xsl:choose>
 					<xsl:choose>
@@ -1092,10 +1094,10 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 						</xsl:otherwise>
 					</xsl:choose>
 				</xsl:for-each>
-				
+
 				<xsl:text>&#009;</xsl:text>
 				<!-- Language Code -->
-				
+
 				<xsl:for-each select="ead:did/ead:langmaterial">
 					<xsl:choose>
 						<xsl:when test=".//ead:language">
@@ -1106,11 +1108,11 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 									<xsl:otherwise>
 										<xsl:value-of select="$cellSeperator"/>
 									</xsl:otherwise>
-								</xsl:choose>					
+								</xsl:choose>
 							</xsl:for-each>
 						</xsl:when>
 						<xsl:otherwise>
-							<xsl:text></xsl:text>
+							<xsl:text/>
 						</xsl:otherwise>
 					</xsl:choose>
 					<xsl:choose>
@@ -1118,7 +1120,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 						<xsl:otherwise>
 							<xsl:value-of select="$cellSeperator"/>
 						</xsl:otherwise>
-					</xsl:choose>	
+					</xsl:choose>
 				</xsl:for-each>
 
 				<xsl:text>&#009;</xsl:text>
@@ -1311,6 +1313,11 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 							<xsl:value-of select="$numberOfbiogHist"/>
 						</xsl:message-->
 						<xsl:for-each select="ead:bioghist">
+							<xsl:if test="$numberOfbiogHist &gt; 1">
+								<xsl:text>***</xsl:text>
+								<xsl:value-of select="$numberOfbiogHist"/>
+								<xsl:text> biogHist***</xsl:text>
+							</xsl:if>
 
 							<xsl:apply-templates mode="OR-biogHist" select="."/>
 							<!--  ***************************************************************
@@ -2121,7 +2128,7 @@ if absolute paths were used I suspect the would overwrite -s and -o. But not sur
 	</xsl:template>
 
 	<xsl:template mode="OR-biogHist" match="ead:date | ead:datesingle">
-		<xsl:text disable-output-escaping="yes">&lt;date&gt;</xsl:text>
+		<xsl:text disable-output-escaping="yes">&lt;date</xsl:text>
 		<xsl:choose>
 			<xsl:when test="@standarddate">
 				<xsl:text> @standarddate="</xsl:text>
